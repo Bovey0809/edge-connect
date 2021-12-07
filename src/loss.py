@@ -30,17 +30,15 @@ class AdversarialLoss(nn.Module):
 
     def __call__(self, outputs, is_real, is_disc=None):
         if self.type == 'hinge':
-            if is_disc:
-                if is_real:
-                    outputs = -outputs
-                return self.criterion(1 + outputs).mean()
-            else:
+            if not is_disc:
                 return (-outputs).mean()
 
+            if is_real:
+                outputs = -outputs
+            return self.criterion(1 + outputs).mean()
         else:
             labels = (self.real_label if is_real else self.fake_label).expand_as(outputs)
-            loss = self.criterion(outputs, labels)
-            return loss
+            return self.criterion(outputs, labels)
 
 
 class StyleLoss(nn.Module):
@@ -59,9 +57,7 @@ class StyleLoss(nn.Module):
         b, ch, h, w = x.size()
         f = x.view(b, ch, w * h)
         f_T = f.transpose(1, 2)
-        G = f.bmm(f_T) / (h * w * ch)
-
-        return G
+        return f.bmm(f_T) / (h * w * ch)
 
     def __call__(self, x, y):
         # Compute features
@@ -206,7 +202,7 @@ class VGG19(torch.nn.Module):
         relu5_3 = self.relu5_3(relu5_2)
         relu5_4 = self.relu5_4(relu5_3)
 
-        out = {
+        return {
             'relu1_1': relu1_1,
             'relu1_2': relu1_2,
 
@@ -228,4 +224,3 @@ class VGG19(torch.nn.Module):
             'relu5_3': relu5_3,
             'relu5_4': relu5_4,
         }
-        return out

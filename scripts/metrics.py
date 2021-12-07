@@ -15,8 +15,7 @@ def parse_args():
     parser.add_argument('--data-path', help='Path to ground truth data', type=str)
     parser.add_argument('--output-path', help='Path to output data', type=str)
     parser.add_argument('--debug', default=0, help='Debug', type=int)
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def compare_mae(img_true, img_test):
@@ -36,10 +35,8 @@ psnr = []
 ssim = []
 mae = []
 names = []
-index = 1
-
 files = list(glob(path_true + '/*.jpg')) + list(glob(path_true + '/*.png'))
-for fn in sorted(files):
+for index, fn in enumerate(sorted(files), start=1):
     name = basename(str(fn))
     names.append(name)
 
@@ -68,8 +65,6 @@ for fn in sorted(files):
             "SSIM: %.4f" % round(np.mean(ssim), 4),
             "MAE: %.4f" % round(np.mean(mae), 4),
         )
-    index += 1
-
 np.savez(args.output_path + '/metrics.npz', psnr=psnr, ssim=ssim, mae=mae, names=names)
 print(
     "PSNR: %.4f" % round(np.mean(psnr), 4),
