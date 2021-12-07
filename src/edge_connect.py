@@ -63,7 +63,7 @@ class EdgeConnect():
         if self.config.MODEL == 1:
             self.edge_model.save()
 
-        elif self.config.MODEL == 2 or self.config.MODEL == 3:
+        elif self.config.MODEL in [2, 3]:
             self.inpaint_model.save()
 
         else:
@@ -225,10 +225,7 @@ class EdgeConnect():
         self.inpaint_model.eval()
 
         progbar = Progbar(total, width=20, stateful_metrics=['it'])
-        iteration = 0
-
-        for items in val_loader:
-            iteration += 1
+        for iteration, items in enumerate(val_loader, start=1):
             images, images_gray, edges, masks = self.cuda(*items)
 
             # edge model
@@ -381,10 +378,7 @@ class EdgeConnect():
         if it is not None:
             iteration = it
 
-        image_per_row = 2
-        if self.config.SAMPLE_SIZE <= 6:
-            image_per_row = 1
-
+        image_per_row = 1 if self.config.SAMPLE_SIZE <= 6 else 2
         images = stitch_images(
             self.postprocess(images),
             self.postprocess(inputs),

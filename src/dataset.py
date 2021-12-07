@@ -101,9 +101,8 @@ class Dataset(torch.utils.data.Dataset):
 
             return canny(img, sigma=sigma, mask=mask).astype(np.float)
 
-        # external
         else:
-            imgh, imgw = img.shape[0:2]
+            imgh, imgw = img.shape[:2]
             edge = imread(self.edge_data[index])
             edge = self.resize(edge, imgh, imgw)
 
@@ -114,7 +113,7 @@ class Dataset(torch.utils.data.Dataset):
             return edge
 
     def load_mask(self, img, index):
-        imgh, imgw = img.shape[0:2]
+        imgh, imgw = img.shape[:2]
         mask_type = self.mask
 
         # external + random block
@@ -152,11 +151,10 @@ class Dataset(torch.utils.data.Dataset):
 
     def to_tensor(self, img):
         img = Image.fromarray(img)
-        img_t = F.to_tensor(img).float()
-        return img_t
+        return F.to_tensor(img).float()
 
     def resize(self, img, height, width, centerCrop=True):
-        imgh, imgw = img.shape[0:2]
+        imgh, imgw = img.shape[:2]
 
         if centerCrop and imgh != imgw:
             # center crop
@@ -196,5 +194,4 @@ class Dataset(torch.utils.data.Dataset):
                 drop_last=True
             )
 
-            for item in sample_loader:
-                yield item
+            yield from sample_loader

@@ -117,10 +117,12 @@ class EdgeModel(BaseModel):
 
 
         # generator feature matching loss
-        gen_fm_loss = 0
-        for i in range(len(dis_real_feat)):
-            gen_fm_loss += self.l1_loss(gen_fake_feat[i], dis_real_feat[i].detach())
-        gen_fm_loss = gen_fm_loss * self.config.FM_LOSS_WEIGHT
+        gen_fm_loss = sum(
+            self.l1_loss(gen_fake_feat[i], dis_real_feat[i].detach())
+            for i in range(len(dis_real_feat))
+        )
+
+        gen_fm_loss *= self.config.FM_LOSS_WEIGHT
         gen_loss += gen_fm_loss
 
 
@@ -137,8 +139,7 @@ class EdgeModel(BaseModel):
         edges_masked = (edges * (1 - masks))
         images_masked = (images * (1 - masks)) + masks
         inputs = torch.cat((images_masked, edges_masked, masks), dim=1)
-        outputs = self.generator(inputs)                                    # in: [grayscale(1) + edge(1) + mask(1)]
-        return outputs
+        return self.generator(inputs)
 
     def backward(self, gen_loss=None, dis_loss=None):
         if dis_loss is not None:
@@ -249,8 +250,7 @@ class InpaintingModel(BaseModel):
     def forward(self, images, edges, masks):
         images_masked = (images * (1 - masks).float()) + masks
         inputs = torch.cat((images_masked, edges), dim=1)
-        outputs = self.generator(inputs)                                    # in: [rgb(3) + edge(1)]
-        return outputs
+        return self.generator(inputs)
 
     def backward(self, gen_loss=None, dis_loss=None):
         dis_loss.backward()
